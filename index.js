@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url'
 
 import MockBrowser from 'mock-browser'
 
-export default function({ Canvas, Image, ImageData }) {
-  const dir = path.dirname(fileURLToPath(import.meta.url))
+export default async function({ Canvas, Image, ImageData }) {
+  const threePath = fileURLToPath(await import.meta.resolve('three'))
   const mock = new MockBrowser.mocks.MockBrowser()
   const vmCtx = vm.createContext({
     document: mock.getDocument(),
@@ -37,7 +37,7 @@ export default function({ Canvas, Image, ImageData }) {
     setInterval,
     console
   })
-  vm.runInContext(fs.readFileSync(path.join(dir, './node_modules/three/build/three.js'), 'utf-8'), vmCtx)
+  vm.runInContext(fs.readFileSync(threePath, 'utf-8'), vmCtx)
   const THREE = vm.runInContext(`THREE`, vmCtx)
   return {
     THREE,
@@ -80,7 +80,7 @@ export default function({ Canvas, Image, ImageData }) {
     },
 
     withGLTFLoader() {
-      vm.runInContext(fs.readFileSync(path.join(dir, './node_modules/three/examples/js/loaders/GLTFLoader.js'), 'utf-8'), vmCtx)
+      vm.runInContext(fs.readFileSync(path.join(path.dirname(path.dirname(threePath)), './examples/js/loaders/GLTFLoader.js'), 'utf-8'), vmCtx)
       const loader = new THREE.GLTFLoader()
       this.loadGLTF = f => new Promise((fulfil, reject) => loader.parse(fs.readFileSync(f).buffer, path.dirname(f), fulfil, reject))
       return this
