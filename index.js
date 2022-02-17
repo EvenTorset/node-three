@@ -5,15 +5,27 @@ import { fileURLToPath } from 'url'
 
 import MockBrowser from 'mock-browser'
 
+class FakeBlob {
+  constructor(bufs, { type }) {
+    this.buffer = Buffer.concat(bufs.map(e => Buffer.from(e)))
+    this.type = type
+  }
+}
+
 export default async function({ Canvas, Image, ImageData }) {
   const threePath = fileURLToPath(await import.meta.resolve('three'))
   const mock = new MockBrowser.mocks.MockBrowser()
+  const window = mock.getWindow()
+  window.URL.createObjectURL = blob => `data:${blob.type};base64,${blob.buffer.toString('base64')}`
+  window.URL.revokeObjectURL = () => {}
   const vmCtx = vm.createContext({
     document: mock.getDocument(),
-    window: mock.getWindow(),
+    window,
+    self: window,
     OffscreenCanvas: Canvas,
     Image,
     ImageData,
+    Blob: FakeBlob,
     Array,
     Int8Array,
     Uint8Array,
