@@ -12,7 +12,7 @@ class FakeBlob {
   }
 }
 
-export default async function({ Canvas, Image, ImageData }) {
+export default async function({ Canvas, Image, ImageData, fetch, Request, Response, Headers }) {
   const threePath = fileURLToPath(await import.meta.resolve('three'))
   const mock = new MockBrowser.mocks.MockBrowser()
   const window = mock.getWindow()
@@ -26,6 +26,10 @@ export default async function({ Canvas, Image, ImageData }) {
     Image,
     ImageData,
     Blob: FakeBlob,
+    fetch,
+    Request,
+    Response,
+    Headers,
     Array,
     Int8Array,
     Uint8Array,
