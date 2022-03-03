@@ -98,7 +98,10 @@ export default async function({ Canvas, Image, ImageData, fetch, Request, Respon
     withGLTFLoader() {
       vm.runInContext(fs.readFileSync(path.join(path.dirname(path.dirname(threePath)), './examples/js/loaders/GLTFLoader.js'), 'utf-8'), vmCtx)
       const loader = new THREE.GLTFLoader()
-      this.loadGLTF = f => new Promise((fulfil, reject) => loader.parse(fs.readFileSync(f).buffer, path.dirname(f), fulfil, reject))
+      this.loadGLTF = f => new Promise((fulfil, reject) => {
+        const buf = fs.readFileSync(f)
+        loader.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), path.dirname(f), fulfil, reject)
+      })
       return this
     }
 
