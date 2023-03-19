@@ -3,8 +3,6 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import MockBrowser from 'mock-browser'
-
 class FakeBlob {
   constructor(bufs, { type }) {
     this.buffer = Buffer.concat(bufs.map(e => Buffer.from(e)))
@@ -14,13 +12,29 @@ class FakeBlob {
 
 export default async function({ Canvas, Image, ImageData, fetch, Request, Response, Headers }) {
   const threePath = fileURLToPath(await import.meta.resolve('three'))
-  const mock = new MockBrowser.mocks.MockBrowser()
-  const window = mock.getWindow()
-  window.URL.createObjectURL = blob => `data:${blob.type};base64,${blob.buffer.toString('base64')}`
-  window.URL.revokeObjectURL = () => {}
+  const document = {
+    createElementNS(_, name) {
+      switch (name) {
+        case 'canvas':
+          const c = new Canvas
+          c.style = {}
+          c.addEventListener = function() {}
+          return c
+        case 'img': return new Image
+        default: throw `Unknown tag name: '${name}`
+      }
+    }
+  }
+  const window = {
+    document,
+    URL: {
+      createObjectURL: blob => `data:${blob.type};base64,${blob.buffer.toString('base64')}`,
+      revokeObjectURL: () => {}
+    }
+  }
   const vmCtx = vm.createContext({
-    document: mock.getDocument(),
-    window,
+    document: document,
+    window: window,
     self: window,
     OffscreenCanvas: Canvas,
     Image,
