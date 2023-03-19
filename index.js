@@ -20,7 +20,29 @@ export default async function({ Canvas, Image, ImageData, fetch, Request, Respon
           c.style = {}
           c.addEventListener = function() {}
           return c
-        case 'img': return new Image
+        case 'img':
+          const img = new Image
+          img.addEventListener = function(eventName, cb) {
+            switch (eventName) {
+              case 'load':
+                img.onload = cb
+                break
+              case 'error':
+                img.onerror = cb
+                break
+            }
+          }
+          img.removeEventListener = function(eventName) {
+            switch (eventName) {
+              case 'load':
+                delete img.onload
+                break
+              case 'error':
+                delete img.onerror
+                break
+            }
+          }
+          return img
         default: throw `Unknown tag name: '${name}`
       }
     }
@@ -33,8 +55,8 @@ export default async function({ Canvas, Image, ImageData, fetch, Request, Respon
     }
   }
   const vmCtx = vm.createContext({
-    document: document,
-    window: window,
+    document,
+    window,
     self: window,
     OffscreenCanvas: Canvas,
     Image,
